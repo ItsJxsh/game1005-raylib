@@ -12,7 +12,12 @@ constexpr float BALL_SIZE = 40.0f;
 // Paddles can move half the screen height per-second
 constexpr float PADDLE_SPEED = SCREEN_HEIGHT * 0.5f;
 constexpr float PADDLE_WIDTH = 40.0f;
-constexpr float PADDLE_HEIGHT = 80.0f;
+constexpr float PADDLE_HEIGHT = 160.0f;
+
+
+int p1Score = 0;
+int p2Score = 0;
+
 
 struct Box
 {
@@ -64,7 +69,7 @@ void ResetBall(Vector2& position, Vector2& direction)
     position = CENTER;
     direction.x = rand() % 2 == 0 ? -1.0f : 1.0f;
     direction.y = 0.0f;
-    direction = Rotate(direction, Random(0.0f, 360.0f) * DEG2RAD);
+    direction = Rotate(direction, Random(-60.0f, 60.0f) * DEG2RAD);
 }
 
 void DrawBall(Vector2 position, Color color)
@@ -74,6 +79,7 @@ void DrawBall(Vector2 position, Color color)
 }
 
 void DrawPaddle(Vector2 position, Color color)
+
 {
     Box paddleBox = PaddleBox(position);
     DrawRectangleRec(BoxToRec(paddleBox), color);
@@ -104,12 +110,29 @@ int main()
         if (IsKeyDown(KEY_S))
             paddle1Position.y += paddleDelta;
 
-        // Mirror paddle 1 for now
-        paddle2Position.y = paddle1Position.y;
-
         float phh = PADDLE_HEIGHT * 0.5f;
         paddle1Position.y = Clamp(paddle1Position.y, phh, SCREEN_HEIGHT - phh);
         paddle2Position.y = Clamp(paddle2Position.y, phh, SCREEN_HEIGHT - phh);
+
+        // Mirror paddle 1 for now
+        if (IsKeyDown(KEY_UP))
+            paddle2Position.y -= paddleDelta;
+        if (IsKeyDown(KEY_DOWN))
+            paddle2Position.y += paddleDelta;
+
+        DrawText(TextFormat("%01i", p1Score), 200, 80, 200, RED);
+        DrawText(TextFormat("%01i", p2Score), 900, 80, 200, BLUE);
+
+        if (p1Score == 5) 
+        {
+            DrawText("Player 1 Wins!", 220, 500, 100, RED);
+            ballDelta = 0;
+        }
+        else if (p2Score == 5)
+        {
+            DrawText("Player 2 Wins!", 220, 500, 100, BLUE);
+            ballDelta = 0;
+        }
 
         // Change the ball's direction on-collision
         Vector2 ballPositionNext = ballPosition + ballDirection * ballDelta;
@@ -117,8 +140,18 @@ int main()
         Box paddle1Box = PaddleBox(paddle1Position);
         Box paddle2Box = PaddleBox(paddle2Position);
 
-        if (ballBox.xMin < 0.0f || ballBox.xMax > SCREEN_WIDTH)
-            ballDirection.x *= -1.0f;
+        if (ballBox.xMin < 0.0f)
+        {
+            ResetBall(ballPosition, ballDirection);
+            p2Score++;
+        }
+
+        if (ballBox.xMax > SCREEN_WIDTH)
+        {
+            ResetBall(ballPosition, ballDirection);
+            p1Score++;
+        }
+
         if (ballBox.yMin < 0.0f || ballBox.yMax > SCREEN_HEIGHT)
             ballDirection.y *= -1.0f;
         if (BoxOverlap(ballBox, paddle1Box) || BoxOverlap(ballBox, paddle2Box))
