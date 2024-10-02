@@ -18,6 +18,11 @@ constexpr float PADDLE_HEIGHT = 160.0f;
 int p1Score = 0;
 int p2Score = 0;
 
+//save an array of colours, which are selected at random to switch the colour of the ball whenever it collides with something.
+int i = 0;
+Color colors[14] = { WHITE, RED, GOLD, LIME, BLUE, VIOLET, BROWN, LIGHTGRAY, PINK,
+                         YELLOW, GREEN, SKYBLUE, PURPLE, ORANGE };
+
 
 struct Box
 {
@@ -87,6 +92,12 @@ void DrawPaddle(Vector2 position, Color color)
 
 int main()
 {
+    InitAudioDevice();
+    Sound Wall = LoadSound("src/WallBounce.mp3");
+    Sound Paddle = LoadSound("src/PaddleBounce.mp3");
+    Sound Score = LoadSound("src/Score.mp3");
+
+
     Vector2 ballPosition;
     Vector2 ballDirection;
     ResetBall(ballPosition, ballDirection);
@@ -125,12 +136,12 @@ int main()
 
         if (p1Score == 5) 
         {
-            DrawText("Player 1 Wins!", 220, 500, 100, RED);
+            DrawText("Player 1 Wins!", 250, 500, 100, RED);
             ballDelta = 0;
         }
         else if (p2Score == 5)
         {
-            DrawText("Player 2 Wins!", 220, 500, 100, BLUE);
+            DrawText("Player 2 Wins!", 250, 500, 100, BLUE);
             ballDelta = 0;
         }
 
@@ -144,25 +155,37 @@ int main()
         {
             ResetBall(ballPosition, ballDirection);
             p2Score++;
+            i = 0;
+            PlaySound(Score);
         }
 
         if (ballBox.xMax > SCREEN_WIDTH)
         {
             ResetBall(ballPosition, ballDirection);
             p1Score++;
+            i = 0;
+            PlaySound(Score);
         }
 
         if (ballBox.yMin < 0.0f || ballBox.yMax > SCREEN_HEIGHT)
+        {
+            i = Random(0, 13);
             ballDirection.y *= -1.0f;
-        if (BoxOverlap(ballBox, paddle1Box) || BoxOverlap(ballBox, paddle2Box))
+            PlaySound(Wall);
+        }
+        if (BoxOverlap(ballBox, paddle1Box) || BoxOverlap(ballBox, paddle2Box)) 
+        {
+            i = Random(0, 13);
             ballDirection.x *= -1.0f;
+            PlaySound(Paddle);
+        }
 
         // Update ball position after collision resolution, then render
         ballPosition = ballPosition + ballDirection * ballDelta;
 
         BeginDrawing();
         ClearBackground(BLACK);
-        DrawBall(ballPosition, WHITE);
+        DrawBall(ballPosition, colors[i]);
         DrawPaddle(paddle1Position, WHITE);
         DrawPaddle(paddle2Position, WHITE);
         EndDrawing();
