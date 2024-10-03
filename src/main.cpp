@@ -131,9 +131,11 @@ int main()
         if (IsKeyDown(KEY_DOWN))
             paddle2Position.y += paddleDelta;
 
+        //drawing players scores to the screen
         DrawText(TextFormat("%01i", p1Score), 200, 80, 200, RED);
         DrawText(TextFormat("%01i", p2Score), 900, 80, 200, BLUE);
 
+        //win conditions
         if (p1Score == 5) 
         {
             DrawText("Player 1 Wins!", 250, 500, 100, RED);
@@ -191,6 +193,7 @@ int main()
         EndDrawing();
     }
 
+    CloseAudioDevice();
     CloseWindow();
     return 0;
 }
